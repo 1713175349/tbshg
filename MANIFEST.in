@@ -1,0 +1,2 @@
+include README.rst CMakeLists.txt
+recursive-include tbshg *.cpp *.hpp CMakeLists.txt
