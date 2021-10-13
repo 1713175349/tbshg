@@ -1,4 +1,1 @@
-Example project
-===============
-
-Project description in here ...
+这是一个使用tight binding 近似计算SHG系数的程序
