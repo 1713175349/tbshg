@@ -1,9 +1,10 @@
 import sys
 from os.path import dirname
 import os
-import test2
+from tbshg import tbshg
 import numpy as np
 
+test2 = tbshg
 # H1=test2.Hamiltoniank()
 
 #print(H1.nowk)
