@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/zln/tbshg/build",
-  "command": "/bin/x86_64-linux-gnu-g++-9  -Dtbshg_EXPORTS -I../tbshg/./lib -I../tbshg/./src -isystem ../tbshg/pybind11/include -isystem /home/zln/anaconda3/include/python3.8  -O3 -DNDEBUG -fPIC -fvisibility=hidden   -flto -fno-fat-lto-objects -o tbshg/CMakeFiles/tbshg.dir/src/tbshg.cpp.o -c /home/zln/tbshg/tbshg/src/tbshg.cpp",
-  "file": "/home/zln/tbshg/tbshg/src/tbshg.cpp"
-}
-]
