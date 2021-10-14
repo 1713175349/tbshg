@@ -54,7 +54,7 @@ for i in range(len(directs)):
     # shg=np.sum(shg,axis=1)
     # plt.plot(hv,np.real(shg),label="real",marker="x")
     # plt.plot(hv,np.imag(shg),label="imag",marker="d")
-    if confs.get("dimension") == None and int(confs["dimension"]) == 3:
+    if confs.get("dimension") == None or int(confs["dimension"]) == 3:
         plt.plot(hv,np.abs(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
         plt.xlabel("Energy(eV)")
         plt.ylabel("pm/V")
