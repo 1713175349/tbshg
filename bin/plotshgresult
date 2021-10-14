@@ -1,0 +1,60 @@
+#!/bin/env python3
+
+from matplotlib import markers
+import matplotlib.pyplot as plt
+import numpy as np
+import sys
+
+import pickle
+def readconfig(fn:str):
+    with open(fn,"r") as fp:
+        buf=""
+        out={}
+        while 1:
+            line = fp.readline()
+            if line == "":
+                break
+            if line.strip() == "" or line.strip()[0]=="#":
+                continue
+            if "#" in line:
+                line=line[:line.index("#")]
+
+            buf += line.strip()
+            if line.strip()[-1]=="\\":
+                buf=buf[:-1]
+                continue
+            k,v=[j.strip() for j in buf.split(":")]
+            out[k]=v
+            buf=""
+    return out
+  
+fp=open("shg_directs.pkl","rb")
+confs = readconfig(sys.argv[1])
+
+
+nkx,nky,nkz=[int(i) for i in confs["nkx,nky,nkz"].split(",")]
+nkxs,nkys,nkzs=[int(i) for i in confs["nkxs,nkys,nkzs"].split(",")]
+
+noccu = int(confs["nocc"])
+
+
+hv=np.linspace(*[int(i) for i in confs["hvrange"].split(",")])
+
+directs=[[int(j) for j in i.split()] for i in confs["directs"].split(",")]
+
+shgs=pickle.load(fp)
+for i in range(len(directs)):
+    if str([directs[i][0],directs[i][2],directs[i][1]]) in [str(j) for j in directs[:i]]:
+        continue
+    # if 2 in directs[i]:
+    #     continue
+    print(directs[i])
+    shg=shgs[int(i)]
+    # shg=np.sum(shg,axis=1)
+    # plt.plot(hv,np.real(shg),label="real",marker="x")
+    # plt.plot(hv,np.imag(shg),label="imag",marker="d")
+    plt.plot(hv,np.abs(shg),label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
+    plt.xlabel("Energy(eV)")
+    plt.ylabel("nm/V")
+plt.legend()
+plt.show()
