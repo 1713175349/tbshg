@@ -197,7 +197,7 @@ if rank == 0:
 myslice=everykslice[rank]
 
 for i in range(myslice.start,myslice.stop,myslice.step):
-    print("proc:",rank,"  processing:",(i-myslice.start)/everyk)
+    print("proc:",rank,"kpoint index",i,"  processing:",(i-myslice.start)/everyk)
     solver.updatek(i)
 
 
@@ -208,10 +208,10 @@ for j in range(len(directs)):
     shg_k=solver.getshg(j)
     if rank!=0:
         comm.send(shg_k[:,myslice],dest=0,tag=rank*100+j+10000)
-        print("send success:",rank,"shg")
+        #print("send success:",rank,"shg")
     else:
         for i in range(1,numproc):
-            print("recev:",i)
+            #print("recev:",i)
             shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j+10000)
 
     comm.Barrier()
@@ -246,7 +246,7 @@ for j in range(len(directs)):
     shg_k=solver.getita(j)
     if rank!=0:
         comm.send(shg_k[:,myslice],dest=0,tag=rank*100+j+20000)
-        print("send success")
+        #print("send success")
     else:
         for i in range(1,numproc):
             shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j+20000)
@@ -283,7 +283,7 @@ for j in range(len(directs)):
     shg_k=solver.getchi(j)
     if rank!=0:
         comm.send(shg_k[:,myslice],dest=0,tag=rank*100+j)
-        print("send success")
+        #print("send success")
     else:
         for i in range(1,numproc):
             shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j)
@@ -319,7 +319,7 @@ for j in range(len(directs)):
     shg_k=solver.getsigma(j)
     if rank!=0:
         comm.send(shg_k[:,myslice],dest=0,tag=rank*100+j)
-        print("send success")
+        #print("send success")
     else:
         for i in range(1,numproc):
             shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j)

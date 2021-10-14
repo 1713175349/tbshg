@@ -33,7 +33,7 @@ confs = readconfig(sys.argv[1])
 
 
 nkx,nky,nkz=[int(i) for i in confs["nkx,nky,nkz"].split(",")]
-nkxs,nkys,nkzs=[int(i) for i in confs["nkxs,nkys,nkzs"].split(",")]
+nkxs,nkys,nkzs=[float(i) for i in confs["nkxs,nkys,nkzs"].split(",")]
 
 noccu = int(confs["nocc"])
 
