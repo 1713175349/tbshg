@@ -57,7 +57,7 @@ with open(os.path.join(_here, _this_package, 'version.py')) as f:
 
 setup(
     name=_this_package,
-    install_requires=["numpy","mpi4py"],
+    install_requires=["numpy","mpi4py","pickle"],
     version=version['__version__'],
     description='tbshg',
     long_description=long_description,
@@ -68,7 +68,7 @@ setup(
     packages=[_this_package],
     python_requires=">=3.5",
     include_package_data=True,
-    scripts=["bin/calculateshg"],
+    scripts=["bin/calculateshg","bin/plotshgresult"],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
