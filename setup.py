@@ -57,7 +57,7 @@ with open(os.path.join(_here, _this_package, 'version.py')) as f:
 
 setup(
     name=_this_package,
-    install_requires=["numpy","mpi4py","pickle"],
+    install_requires=["numpy","mpi4py"],
     version=version['__version__'],
     description='tbshg',
     long_description=long_description,
