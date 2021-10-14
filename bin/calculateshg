@@ -197,7 +197,7 @@ if rank == 0:
 myslice=everykslice[rank]
 
 for i in range(myslice.start,myslice.stop,myslice.step):
-    print("proc:",rank,"kpoint index",i,"  processing:",(i-myslice.start)/everyk)
+    print("proc:",rank,"kpoint index",i,"  processing:",(i-myslice.start)/everyk,flush=True)
     solver.updatek(i)
 
 
