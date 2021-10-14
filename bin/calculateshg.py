@@ -6,6 +6,9 @@ import numpy as np
 
 from mpi4py import MPI
 import pickle
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+numproc = comm.Get_size()
 
 test2 = tbshg
 # H1=test2.Hamiltoniank()
@@ -71,57 +74,56 @@ def readfile(H1,fn:str):
 
 
 
+def readconfig(fn:str):
+    with open(fn,"r") as fp:
+        buf=""
+        out={}
+        while 1:
+            line = fp.readline()
+            if line == "":
+                break
+            if line.strip() == "" or line.strip()[0]=="#":
+                continue
+            if "#" in line:
+                line=line[:line.index("#")]
+
+            buf += line.strip()
+            if line.strip()[-1]=="\\":
+                buf=buf[:-1]
+                continue
+            k,v=[j.strip() for j in buf.split(":")]
+            out[k]=v
+            buf=""
+    return out
+            
+confs = readconfig(sys.argv[1])
+
 solver=test2.solveshg()
-readfile(solver.H1,"/mnt/c/Users/dell/Desktop/cc/wannier90")
+readfile(solver.H1,confs["datafilepath"])
 # readfile(solver.H1,"/mnt/c/Users/dell/Desktop/bn-w/wannier90")
 
-solver.H1.bandgapadd=0.0
+solver.H1.bandgapadd=float(confs["bandgapadd"])
 
-solver.ksi=0.02
-nkx=168
-nky=168
-nkz=1
+solver.ksi=float(confs["ksi"])
+nkx,nky,nkz=[int(i) for i in confs["nkx,nky,nkz"].split(",")]
+nkxs,nkys,nkzs=[int(i) for i in confs["nkxs,nkys,nkzs"].split(",")]
 thickness=6
 epsilon0=0.0552
 
-noccu = 7
+noccu = int(confs["nocc"])
 
 
-hv=np.linspace(0,5,201)
+hv=np.linspace(*[int(i) for i in confs["hvrange"].split(",")])
 
-directs=[
-        # [0,0,0],
-        # [0,0,1],
-        # [0,0,2],
-        # [0,1,1],
-        # [0,1,2],
-        # [0,2,2],
+directs=[[int(j) for j in i.split()] for i in confs["directs"].split(",")]
 
-        # [1,0,0],
-        [1,0,1],
-        # [1,0,2],
-        # # [1,1,0],
-        # [1,1,1],
-        # [1,1,2],
-        # # [1,2,0],
-        # # [1,2,1],
-        # [1,2,2],
+iswriteperk = bool(int(confs["writeperk"]))
 
-        # [2,0,0],
-        # [2,0,1],
-        # [2,0,2],
-        # # [2,1,0],
-        # [2,1,1],
-        # [2,1,2],
-        # # [2,2,0],
-        # # [2,2,1],
-        # [2,2,2],
-        ]
+# raise ValueError("a 必须是数字")
 
-
-kx=np.linspace(-0.5,0.5,nkx+1)[:-1]#+1/2/nkx
-ky=np.linspace(-0.5,0.5,nky+1)[:-1]#+1/2/nky
-kz=np.linspace(-0.5,0.5,nkz+1)[:-1]+1/2/nkz
+kx=np.linspace(-0.5,0.5,nkx+1)[:-1]+nkxs
+ky=np.linspace(-0.5,0.5,nky+1)[:-1]+nkys
+kz=np.linspace(-0.5,0.5,nkz+1)[:-1]+nkzs
 Kx,Ky,Kz=np.meshgrid(kx,ky,kz)
 kx=Kx.reshape(-1)
 ky=Ky.reshape(-1)
@@ -152,7 +154,11 @@ for i in range(nkpts):
 
 kweight=kweight/nkpts
 
-
+if rank == 0:
+    with open("kmesh.pkl","wb") as fp:
+        pickle.dump(kmesh,fp)
+    with open("hv.pkl","wb") as fp:
+        pickle.dump(hv,fp)
 
 
 solver.nkpts=nkpts
@@ -170,10 +176,6 @@ for i in range(len(myweight)):
         myweight[i] = 1
 solver.H1.energyweight=myweight
 
-
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-numproc = comm.Get_size()
 
 everyk=int(np.ceil(nkpts/numproc))
 
@@ -199,24 +201,29 @@ for i in range(myslice.start,myslice.stop,myslice.step):
 
 comm.Barrier()
 shg_directs=[]
+shgdk=[]
 for j in range(len(directs)):
     shg_k=solver.getshg(j)
     if rank!=0:
-        comm.send(shg_k[:,myslice],dest=0,tag=rank*100+j)
-        print("send success")
+        comm.send(shg_k[:,myslice],dest=0,tag=rank*100+j+10000)
+        print("send success:",rank,"shg")
     else:
         for i in range(1,numproc):
-            shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j)
+            print("recev:",i)
+            shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j+10000)
 
     comm.Barrier()
+    if rank != 0:
+        continue
     shg_final=np.zeros(shg_k.shape[0],dtype=np.complex128)
     for i in range(shg_k.shape[0]):
         shg_final[i]=np.dot(shg_k[i],kweight)/Vcell/epsilon0
     shg_final = shg_final*lattice[2][2]/thickness
     shg_directs.append(shg_final)
+    shgdk.append(shg_k)
     shg=np.sum(shg_k,axis=1)
 
- 
+
 
 
 
@@ -224,34 +231,46 @@ for j in range(len(directs)):
 if rank == 0:
     with open("shg_directs.pkl","wb") as fp:
         pickle.dump(shg_directs,fp)
+    if iswriteperk:
+        with open("shg_directsperk.pkl","wb") as fp:
+            pickle.dump(shgdk,fp)
 
+shgdk=[]
 # ita
 comm.Barrier()
 shg_directs=[]
+itadk=[]
 for j in range(len(directs)):
     shg_k=solver.getita(j)
     if rank!=0:
-        comm.send(shg_k[:,myslice],dest=0,tag=rank*100+j)
+        comm.send(shg_k[:,myslice],dest=0,tag=rank*100+j+20000)
         print("send success")
     else:
         for i in range(1,numproc):
-            shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j)
+            shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j+20000)
 
     comm.Barrier()
+    if rank != 0:
+        continue
     shg_final=np.zeros(shg_k.shape[0],dtype=np.complex128)
     for i in range(shg_k.shape[0]):
         shg_final[i]=np.dot(shg_k[i],kweight)/Vcell/epsilon0
     shg_final = shg_final*lattice[2][2]/thickness
     shg_directs.append(shg_final)
+    itadk.append(shg_k)
     shg=np.sum(shg_k,axis=1)
 
- 
+
 
 
 if rank == 0:
     with open("ita_directs.pkl","wb") as fp:
         pickle.dump(shg_directs,fp)
+    if iswriteperk:
+        with open("ita_directsperk.pkl","wb") as fp:
+            pickle.dump(itadk,fp)
 
+itadk=[]
 
 
 #chi
@@ -268,6 +287,8 @@ for j in range(len(directs)):
             shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j)
 
     comm.Barrier()
+    if rank != 0:
+        continue
     shg_final=np.zeros(shg_k.shape[0],dtype=np.complex128)
     for i in range(shg_k.shape[0]):
         shg_final[i]=np.dot(shg_k[i],kweight)/Vcell/epsilon0
@@ -276,19 +297,22 @@ for j in range(len(directs)):
     chidk.append(shg_k)
     shg=np.sum(shg_k,axis=1)
 
- 
+
 
 
 if rank == 0:
     with open("chi_directs.pkl","wb") as fp:
         pickle.dump(shg_directs,fp)
-    with open("chi_directsperk.pkl","wb") as fp:
-        pickle.dump(chidk,fp)
+    if iswriteperk:
+        with open("chi_directsperk.pkl","wb") as fp:
+            pickle.dump(chidk,fp)
 
+chidk=[]
 
 #sigma
 comm.Barrier()
 shg_directs=[]
+sigmadk=[]
 for j in range(len(directs)):
     shg_k=solver.getsigma(j)
     if rank!=0:
@@ -299,17 +323,25 @@ for j in range(len(directs)):
             shg_k[:,everykslice[i]]=comm.recv(source=i,tag=i*100+j)
 
     comm.Barrier()
+    if rank != 0:
+        continue
     shg_final=np.zeros(shg_k.shape[0],dtype=np.complex128)
     for i in range(shg_k.shape[0]):
         shg_final[i]=np.dot(shg_k[i],kweight)/Vcell/epsilon0
     shg_final = shg_final*lattice[2][2]/thickness
     shg_directs.append(shg_final)
+    sigmadk.append(shg_k)
     shg=np.sum(shg_k,axis=1)
 
- 
+
 
 
 if rank == 0:
     with open("sigma_directs.pkl","wb") as fp:
         pickle.dump(shg_directs,fp)
+    if iswriteperk:
+        with open("sigma_directsperk.pkl","wb") as fp:
+            pickle.dump(sigmadk,fp)
 
+sigmadk=[]
+comm.Barrier()
