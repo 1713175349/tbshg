@@ -4,6 +4,9 @@ import os
 from tbshg import tbshg
 import numpy as np
 
+from mpi4py import MPI
+import pickle
+
 test2 = tbshg
 # H1=test2.Hamiltoniank()
 
@@ -168,8 +171,6 @@ for i in range(len(myweight)):
 solver.H1.energyweight=myweight
 
 
-from mpi4py import MPI
-
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 numproc = comm.Get_size()
@@ -194,7 +195,7 @@ myslice=everykslice[rank]
 for i in range(myslice.start,myslice.stop,myslice.step):
     print("proc:",rank,"  processing:",(i-myslice.start)/everyk)
     solver.updatek(i)
-import pickle
+
 
 comm.Barrier()
 shg_directs=[]

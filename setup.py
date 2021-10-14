@@ -57,6 +57,7 @@ with open(os.path.join(_here, _this_package, 'version.py')) as f:
 
 setup(
     name=_this_package,
+    install_requires=["numpy","mpi4py"],
     version=version['__version__'],
     description='tbshg',
     long_description=long_description,
@@ -65,10 +66,13 @@ setup(
     url='none',
     license='MIT',
     packages=[_this_package],
+    python_requires=">=3.5",
     include_package_data=True,
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8'
     ],
     cmdclass={'build': extend_build()})
