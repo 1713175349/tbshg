@@ -120,6 +120,16 @@ int Hamiltoniank::updateH(Eigen::Vector3d kv){
         }
         
     }
+    for (int i = 0; i < wcentnum; i++)
+    {
+        for (int j = 0; j < wcentnum; j++)
+        {
+            Hk(i,j)=complex<double>(round(real(Hk(i,j))*1000000)/1000000,round(imag(Hk(i,j))*1000000)/1000000);
+            dHkdkx(i,j)=complex<double>(round(real(dHkdkx(i,j))*1000000)/1000000,round(imag(dHkdkx(i,j))*1000000)/1000000);
+            dHkdky(i,j)=complex<double>(round(real(dHkdky(i,j))*1000000)/1000000,round(imag(dHkdky(i,j))*1000000)/1000000);
+            dHkdkz(i,j)=complex<double>(round(real(dHkdkz(i,j))*1000000)/1000000,round(imag(dHkdkz(i,j))*1000000)/1000000);
+        }
+    }
     return 1;
 }
 
@@ -133,7 +143,7 @@ int Hamiltoniank::solverH(){
             energy(i)+=bandgapadd;
         }
     }
-    
+    // std::cout<<energy<<std::endl;
     wavef=es.eigenvectors();//每个特征向量为列向量
     return 0;
 }
@@ -163,16 +173,20 @@ void Hamiltoniank::update_vnmrnm(){
     {
         for (int j = 0; j < wcentnum; j++)
         {
-            if (abs(energy(i)-energy(j)) <0.0001 )
-                continue;
+            
             for (int k = 0; k < 3; k++)
             {
-                rnm(k)(i,j)=-complex<double>(0,1)*vnm(k)(i,j)/(energy(i)-energy(j));
+                if (abs(energy(i)-energy(j)) <0.0001 ){
+                    rnm(k)(i,j)=0;
+                }
+                else{
+                    rnm(k)(i,j)=-complex<double>(0,1)*vnm(k)(i,j)/(energy(i)-energy(j));
+                }
             }
             
         }
     }
-    
+    // std::cout<<rnm(0)(15,0)<<rnm(1)(14,15)<<vnm(1)(14,15)<<std::endl;
 }
 
 

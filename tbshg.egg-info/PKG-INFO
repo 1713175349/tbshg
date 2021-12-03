@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: tbshg
+Version: 0.0.0
+Summary: tbshg
+Home-page: none
+Author: zln
+Author-email: zln
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Requires-Python: >=3.5
+License-File: LICENSE.txt
+
+这是一个使用tight binding 近似计算SHG系数的程序
+

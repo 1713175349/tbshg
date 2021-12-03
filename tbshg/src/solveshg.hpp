@@ -6,7 +6,7 @@
 #include<pybind11/numpy.h>
 #include "hamiltoniank.hpp"
 
-#define newversion
+// #define newversion
 
 class solveshg
 {
@@ -92,8 +92,8 @@ void solveshg::updatechi(){
                     if (abs(Eln-Eml) > 0.0001){
                         
                         fac1=H1.rnm(a)(n,m)*(H1.rnm(b)(m,l)*H1.rnm(c)(l,n)+H1.rnm(c)(m,l)*H1.rnm(b)(l,n))/(Eln-Eml);
-                        // if(abs(fac1)>0.001){
-                        // std::cout<<n<<l<<m<<":"<<fac1<<std::endl;}
+                    //     if(abs(fac1)>0.001 &&idirect==1){
+                    //     std::cout<<n<<"-"<<l<<"-"<<m<<":"<<fac1<<std::endl;}
                     
                     }
                     // std::cout<<fac1<<std::endl;
@@ -105,6 +105,11 @@ void solveshg::updatechi(){
                                         +2*(H1.energyweight(n)-H1.energyweight(m))/(Emn-2.0*omega);
                         // if(n==9 && m==23 && l==19){
                         //     std::cout<<n<<l<<m<<"fac2:"<<omega<<fac2<<(H1.energyweight(m)-H1.energyweight(l))/(Eml-omega)<<std::endl;
+                        // }
+                        // if(abs(fac2)>0.001 && idirect ==1 && ihv==44 && nowkindex==3){
+                        // std::cout<<n<<"-"<<l<<"-"<<m<<":"<<chi(idirect)(ihv,nowkindex)<<fac1<<fac2<<std::endl;}
+                        // if (n==15 && m==0 && l==14 && idirect==1 && ihv==44 && nowkindex<4){
+                        //     std::cout<<n<<"-"<<l<<"-"<<m<<"-"<<ihv<<":"<<fac1<<H1.rnm(a)(n,m)<<H1.rnm(b)(m,l)<<H1.rnm(c)(l,n)<<H1.rnm(c)(m,l)<<H1.rnm(b)(l,n)<<std::endl;
                         // }
                         chi(idirect)(ihv,nowkindex)+=0.5*fac1*fac2; //这里0.5把对称化部分除了
                     }
@@ -308,7 +313,10 @@ void solveshg::updatek(int ki){
     
     updatesigma();
     updateshg();
-
+    // H1.setup();
+    // if (ki==3){
+    //     std::cout<<"chi3:"<< H1.energy<<std::endl;
+    // }
     // std::cout<<"chi:\n"<<chi(0)<<std::endl;
     // std::cout<<"ita:\n"<<ita(0)<<std::endl;
     // std::cout<<"sigma:\n"<<sigma(0)<<std::endl;

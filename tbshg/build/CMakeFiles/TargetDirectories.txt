@@ -1,0 +1,13 @@
+/home/zln/tbshg/tbshg/build/CMakeFiles/install/strip.dir
+/home/zln/tbshg/tbshg/build/CMakeFiles/install/local.dir
+/home/zln/tbshg/tbshg/build/CMakeFiles/install.dir
+/home/zln/tbshg/tbshg/build/CMakeFiles/list_install_components.dir
+/home/zln/tbshg/tbshg/build/CMakeFiles/rebuild_cache.dir
+/home/zln/tbshg/tbshg/build/CMakeFiles/edit_cache.dir
+/home/zln/tbshg/tbshg/build/CMakeFiles/tbshg.dir
+/home/zln/tbshg/tbshg/build/pybind11/CMakeFiles/install/strip.dir
+/home/zln/tbshg/tbshg/build/pybind11/CMakeFiles/install/local.dir
+/home/zln/tbshg/tbshg/build/pybind11/CMakeFiles/install.dir
+/home/zln/tbshg/tbshg/build/pybind11/CMakeFiles/list_install_components.dir
+/home/zln/tbshg/tbshg/build/pybind11/CMakeFiles/rebuild_cache.dir
+/home/zln/tbshg/tbshg/build/pybind11/CMakeFiles/edit_cache.dir
