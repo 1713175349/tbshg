@@ -1,0 +1,75 @@
+#!/bin/env python3
+
+from types import WrapperDescriptorType
+import matplotlib.pyplot as plt
+import numpy as np
+import sys
+import pickle
+import argparse
+def loadfile(fn):
+    with open(fn,"rb") as fp:
+        return pickle.load(fp)
+
+def readconfig(fn:str):
+    with open(fn,"r") as fp:
+        buf=""
+        out={}
+        while 1:
+            line = fp.readline()
+            if line == "":
+                break
+            if line.strip() == "" or line.strip()[0]=="#":
+                continue
+            if "#" in line:
+                line=line[:line.index("#")]
+
+            buf += line.strip()
+            if line.strip()[-1]=="\\":
+                buf=buf[:-1]
+                continue
+            k,v=[j.strip() for j in buf.split(":")]
+            out[k]=v
+            buf=""
+    return out
+
+# parsearges
+parser = argparse.ArgumentParser(description="plot shg result")
+parser.add_argument("-c","--config",type=str,default="run.conf",help="config file")
+parser.add_argument("-d","--directs",type=str,default="0",help="directs index")
+parser.add_argument("-v","--hv",type=str,default="0",help="hv value")
+args=parser.parse_args()
+
+confs = readconfig(args.config)
+
+
+nkx,nky,nkz=[int(i) for i in confs["nkx,nky,nkz"].split(",")]
+
+kpts=loadfile("kmesh.pkl")
+hv=loadfile("hv.pkl")
+hvi=np.argmin(np.abs(hv-float(args.hv)))
+shgdk=loadfile("shg_directsperk.pkl")
+shgs=loadfile("shg_directs.pkl")
+kshape=(nkx,nky)
+directs=[[int(j) for j in i.split()] for i in confs["directs"].split(",")]
+def analy():
+    a=shgdk[int(args.directs)][hvi]
+    fig,ax=plt.subplots(1,3)
+    p1=ax[0].pcolormesh(kpts[:,0].reshape(kshape),kpts[:,1].reshape(kshape),a.reshape(kshape).real)
+    p2=ax[1].pcolormesh(kpts[:,0].reshape(kshape),kpts[:,1].reshape(kshape),a.reshape(kshape).imag)
+    ax[0].set_title("real")
+    ax[1].set_title("image   sum:"+str(np.sum(a)/len(a)))
+    plt.colorbar(p1,ax=ax[0])
+    plt.colorbar(p2,ax=ax[1])
+    shg=shgs[int(args.directs)]
+    ax[2].plot(hv,np.abs(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[int(args.directs)]])+"_abs",marker="d")
+    ax[2].plot(hv,np.real(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[int(args.directs)]])+"_real",marker="d")
+    ax[2].plot(hv,np.imag(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[int(args.directs)]])+"_imag",marker="d")
+    ax[2].set_xlabel("Energy(eV)")
+    ax[2].set_ylabel("pm/V")
+    ax[2].annotate("hv:"+str(hv[hvi]),xy=(hv[hvi],(np.abs(shg)*10**3)[hvi]))
+    ax[2].legend()
+    fig.savefig("shg_directs_"+str(hvi)+"_"+args.hv+".png")
+    plt.show()
+
+
+analy()
