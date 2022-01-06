@@ -139,7 +139,7 @@ int Hamiltoniank::solverH(){
     energy=es.eigenvalues().real();
     for (int i = 0; i < wcentnum; i++)
     {   
-        if (energyweight(i)<0.5){
+        if (energyweight(i)>0.5){
             energy(i)+=bandgapadd;
         }
     }
@@ -149,26 +149,6 @@ int Hamiltoniank::solverH(){
 }
 
 void Hamiltoniank::updaternm(){
-    for (int i = 0; i < wcentnum; i++)
-    {
-        for (int j = 0; j < wcentnum; j++)
-        {
-            if (abs(energy(i)-energy(j)) <0.0001 )
-                continue;
-            for (int k = 0; k < 3; k++)
-            {
-                rnm(k)(i,j)=-complex<double>(0,1)*vnm(k)(i,j)/(energy(i)-energy(j));
-            }
-            
-        }
-    }
-}
-
-void Hamiltoniank::update_vnmrnm(){
-    vnm(0)=wavef.adjoint()*dHkdkx*wavef;
-    vnm(1)=wavef.adjoint()*dHkdky*wavef;
-    vnm(2)=wavef.adjoint()*dHkdkz*wavef;
-
     for (int i = 0; i < wcentnum; i++)
     {
         for (int j = 0; j < wcentnum; j++)
@@ -186,6 +166,35 @@ void Hamiltoniank::update_vnmrnm(){
             
         }
     }
+}
+
+void Hamiltoniank::update_vnmrnm(){
+    vnm(0)=wavef.adjoint()*dHkdkx*wavef;
+    vnm(1)=wavef.adjoint()*dHkdky*wavef;
+    vnm(2)=wavef.adjoint()*dHkdkz*wavef;
+    double change=0;
+    for (int i = 0; i < wcentnum; i++)
+    {
+        for (int j = 0; j < wcentnum; j++)
+        {
+            
+            for (int k = 0; k < 3; k++)
+            {
+                if (energyweight(i)<0.5 && energyweight(j)>0.5){
+                    change = -bandgapadd;
+                }
+                else if (energyweight(i)>0.5 && energyweight(j)<0.5){
+                    change = bandgapadd;
+                }
+                else{
+                    change = 0;
+                }
+                vnm(k)(i,j)=vnm(k)(i,j)*(energy(i)-energy(j))/(energy(i)-energy(j)-change);
+            }
+            
+        }
+    }
+    updaternm();
     // std::cout<<rnm(0)(15,0)<<rnm(1)(14,15)<<vnm(1)(14,15)<<std::endl;
 }
 

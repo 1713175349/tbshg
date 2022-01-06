@@ -25,7 +25,7 @@
 	"objects" : 
 	[
 		{
-			"jsonFile" : "codemodel-v2-12a972ef31ae74d4fa8e.json",
+			"jsonFile" : "codemodel-v2-0cf960dd7005d9141601.json",
 			"kind" : "codemodel",
 			"version" : 
 			{
@@ -34,7 +34,7 @@
 			}
 		},
 		{
-			"jsonFile" : "cache-v2-f6e3f9db8715527f6c49.json",
+			"jsonFile" : "cache-v2-1a47fe835e7487190580.json",
 			"kind" : "cache",
 			"version" : 
 			{
@@ -43,7 +43,7 @@
 			}
 		},
 		{
-			"jsonFile" : "cmakeFiles-v1-126da33d4fa47135509c.json",
+			"jsonFile" : "cmakeFiles-v1-9c8e0cd670ebf6d7d4a2.json",
 			"kind" : "cmakeFiles",
 			"version" : 
 			{
@@ -58,7 +58,7 @@
 		{
 			"cache-v2" : 
 			{
-				"jsonFile" : "cache-v2-f6e3f9db8715527f6c49.json",
+				"jsonFile" : "cache-v2-1a47fe835e7487190580.json",
 				"kind" : "cache",
 				"version" : 
 				{
@@ -68,7 +68,7 @@
 			},
 			"cmakeFiles-v1" : 
 			{
-				"jsonFile" : "cmakeFiles-v1-126da33d4fa47135509c.json",
+				"jsonFile" : "cmakeFiles-v1-9c8e0cd670ebf6d7d4a2.json",
 				"kind" : "cmakeFiles",
 				"version" : 
 				{
@@ -78,13 +78,58 @@
 			},
 			"codemodel-v2" : 
 			{
-				"jsonFile" : "codemodel-v2-12a972ef31ae74d4fa8e.json",
+				"jsonFile" : "codemodel-v2-0cf960dd7005d9141601.json",
 				"kind" : "codemodel",
 				"version" : 
 				{
 					"major" : 2,
 					"minor" : 0
 				}
+			}
+		},
+		"client-vscode" : 
+		{
+			"query.json" : 
+			{
+				"requests" : 
+				[
+					{
+						"kind" : "cache",
+						"version" : 2
+					},
+					{
+						"kind" : "codemodel",
+						"version" : 2
+					},
+					{
+						"kind" : "toolchains",
+						"version" : 1
+					}
+				],
+				"responses" : 
+				[
+					{
+						"jsonFile" : "cache-v2-1a47fe835e7487190580.json",
+						"kind" : "cache",
+						"version" : 
+						{
+							"major" : 2,
+							"minor" : 0
+						}
+					},
+					{
+						"jsonFile" : "codemodel-v2-0cf960dd7005d9141601.json",
+						"kind" : "codemodel",
+						"version" : 
+						{
+							"major" : 2,
+							"minor" : 0
+						}
+					},
+					{
+						"error" : "unknown request kind 'toolchains'"
+					}
+				]
 			}
 		}
 	}

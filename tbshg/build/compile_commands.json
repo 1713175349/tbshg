@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/zln/tbshg/tbshg/build",
+  "command": "/bin/clang++-10  -Dtbshg_EXPORTS -I.././lib -I.././src -isystem ../pybind11/include -isystem /usr/include/python3.8  -g -fPIC -fvisibility=hidden   -o CMakeFiles/tbshg.dir/src/tbshg.cpp.o -c /home/zln/tbshg/tbshg/src/tbshg.cpp",
+  "file": "/home/zln/tbshg/tbshg/src/tbshg.cpp"
+}
+]
