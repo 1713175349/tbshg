@@ -139,7 +139,7 @@ int Hamiltoniank::solverH(){
     energy=es.eigenvalues().real();
     for (int i = 0; i < wcentnum; i++)
     {   
-        if (energyweight(i)>0.5){
+        if (energyweight(i)<0.5){
             energy(i)+=bandgapadd;
         }
     }
@@ -181,10 +181,10 @@ void Hamiltoniank::update_vnmrnm(){
             for (int k = 0; k < 3; k++)
             {
                 if (energyweight(i)<0.5 && energyweight(j)>0.5){
-                    change = -bandgapadd;
+                    change = bandgapadd;
                 }
                 else if (energyweight(i)>0.5 && energyweight(j)<0.5){
-                    change = bandgapadd;
+                    change = -bandgapadd;
                 }
                 else{
                     change = 0;
