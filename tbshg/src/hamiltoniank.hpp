@@ -189,7 +189,9 @@ void Hamiltoniank::update_vnmrnm(){
                 else{
                     change = 0;
                 }
-                vnm(k)(i,j)=vnm(k)(i,j)*(energy(i)-energy(j))/(energy(i)-energy(j)-change);
+                if (i!=j){
+                    vnm(k)(i,j)=vnm(k)(i,j)*(energy(i)-energy(j))/(energy(i)-energy(j)-change);
+                }
             }
             
         }

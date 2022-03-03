@@ -15,6 +15,8 @@ def extend_build():
                 sys.stderr.write("CMake is required to build this package.\n")
                 sys.exit(-1)
             _source_dir = os.path.split(__file__)[0]
+            _source_dir = os.path.join(_source_dir, 'tbshg')
+            print(os.listdir(_source_dir))
             _build_dir = os.path.join(_source_dir, 'build_setup_py')
             _prefix = get_python_lib()
             try:

@@ -5,8 +5,8 @@
 #include<pybind11/eigen.h>
 #include<pybind11/numpy.h>
 #include "hamiltoniank.hpp"
-
-// #define newversion
+#include <cmath>
+//#define newversion
 
 class solveshg
 {
@@ -152,6 +152,28 @@ void solveshg::updateita(){
                             +(H1.vnm(c)(m,m)-H1.vnm(c)(n,n))*H1.rnm(b)(m,n)
                         )/2.0/(Emn*Emn*(Emn-2.0*omega));
                         
+                        // fac12 为nan时输出调试信息
+                        // if(std::isfinite(fac12.real())==false){
+                        //     std::cout<<"fac12:"<<fac12<<std::endl;
+                        //     std::cout<<"Emn:"<<Emn<<std::endl;
+                        //     std::cout<<"omega:"<<omega<<std::endl;
+                        //     std::cout<<"n:"<<n<<std::endl;
+                        //     std::cout<<"m:"<<m<<std::endl;
+                        //     std::cout<<"H1.energyweight(n):"<<H1.energyweight(n)<<std::endl;
+                        //     std::cout<<"H1.energyweight(m):"<<H1.energyweight(m)<<std::endl;
+                        //     std::cout<<"H1.rnm(a)(n,m):"<<H1.rnm(a)(n,m)<<std::endl;
+                        //     std::cout<<"H1.vnm(b)(m,m):"<<H1.vnm(b)(m,m)<<std::endl;
+                        //     std::cout<<"H1.vnm(b)(n,n):"<<H1.vnm(b)(n,n)<<std::endl;
+                        //     std::cout<<"H1.rnm(c)(m,n):"<<H1.rnm(c)(m,n)<<std::endl;
+                        //     std::cout<<"H1.vnm(c)(m,m):"<<H1.vnm(c)(m,m)<<std::endl;
+                        //     std::cout<<"H1.vnm(c)(n,n):"<<H1.vnm(c)(n,n)<<std::endl;
+                        //     std::cout<<"H1.rnm(b)(m,n):"<<H1.rnm(b)(m,n)<<std::endl;
+                        //     std::cout<<"Emn:"<<Emn<<std::endl;
+                        //     std::cout<<"omega:"<<omega<<std::endl;
+                        //     std::cout<<"n:"<<n<<std::endl;
+                        //     std::cout<<"m:"<<m<<std::endl;
+                        //     std::cout<<"H1.energyweight(n):"<<H1.energyweight(n)<<std::endl;
+                        // }
                         ita(idirect)(ihv,nowkindex)+=fac12;
                     }
 
