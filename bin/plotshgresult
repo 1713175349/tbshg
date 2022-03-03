@@ -1,6 +1,7 @@
 #!/bin/env python3
 
 from os import confstr
+from gevent import config
 from matplotlib import markers
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,6 +45,11 @@ hv=np.linspace(*[int(i) for i in confs["hvrange"].split(",")])
 directs=[[int(j) for j in i.split()] for i in confs["directs"].split(",")]
 
 shgs=pickle.load(fp)
+import pandas as pd
+if confs.get("iswritedata"):
+    isout=(int(confs.get("iswritedata"))==1)
+if isout:
+    df=pd.DataFrame(hv,columns=["hv"])
 for i in range(len(directs)):
     if str([directs[i][0],directs[i][2],directs[i][1]]) in [str(j) for j in directs[:i]]:
         continue
@@ -56,11 +62,21 @@ for i in range(len(directs)):
     # plt.plot(hv,np.imag(shg),label="imag",marker="d")
     if confs.get("dimension") == None or int(confs["dimension"]) == 3:
         plt.plot(hv,np.abs(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
+        if isout:
+            df["".join([["x","y","z"][i] for i in directs[i]])]=np.abs(shg)*10**3
         plt.xlabel("Energy(eV)")
         plt.ylabel("pm/V")
     elif int(confs["dimension"]) == 2:
         plt.plot(hv,np.abs(shg)*10**3*10**2*float(confs["thickness"]),label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
         plt.xlabel("Energy(eV)")
         plt.ylabel("pm^2/V")
+    
+    if isout:
+        df["".join([["x","y","z"][i] for i in directs[i]])+"-abs"]=np.abs(shg)*10**3
+        df["".join([["x","y","z"][i] for i in directs[i]])+"-real"]=np.real(shg)*10**3
+        df["".join([["x","y","z"][i] for i in directs[i]])+"-image"]=np.imag(shg)*10**3
+    
+if isout:
+    df.to_csv("shg_directs.csv",index=False)
 plt.legend()
 plt.show()
