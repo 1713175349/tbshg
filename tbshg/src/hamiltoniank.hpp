@@ -1,6 +1,7 @@
 #pragma once
 
 #include"Eigen/Dense"
+
 #include<Eigen/Eigenvalues>
 #include<pybind11/pybind11.h>
 #include<pybind11/eigen.h>
@@ -25,7 +26,7 @@ public:
     Eigen::MatrixXcd dHkdkz;
     int overlapnum;
     int wcentnum;
-    int clcdHdk=1;
+    int clcdHdk=1; //是否计算动量矩阵
     double bandgapadd=0;
     py::array_t<complex<double>> Hr;//tight binding参数(相对位置，wc1，wc2)
     Eigen::MatrixX3d R;//相对位置 分数坐标
@@ -37,6 +38,7 @@ public:
     Eigen::VectorXd energy;//本征能
     Eigen::MatrixXcd wavef;//波函数
     Eigen::VectorXd energyweight;
+    Eigen::Vector3d kvector_now{-100000000000,-100000000000,-1000000000000};//k点
     Eigen::Vector<Eigen::MatrixXcd,3> vnm;
     Eigen::Vector<Eigen::MatrixXcd,3> rnm;//（x or y or z,rnmx)
     Eigen::MatrixXcd getrnm(int i){return rnm(i);}
@@ -54,11 +56,32 @@ public:
         }
     void updaternm();
     int setup();
-    int updateH(Eigen::Vector3d);
+    int updateH(Eigen::Vector3d); //输入正交坐标系下的向量
     int solverH();
     void update_vnmrnm();
-    void runonekpoints(Eigen::Vector3d);
+    void runonekpoints(Eigen::Vector3d); //输入正交坐标系下的向量
+
+    std::string informations();
 };
+
+std::string Hamiltoniank::informations(){
+    std::ostringstream oss;
+    oss<<"Hamiltoniank:"<<std::endl;
+    //int information
+    oss<<"overlapnum:"<<overlapnum<<std::endl;
+    oss<<"wcentnum:"<<wcentnum<<std::endl;
+    oss<<"clcdHdk:"<<clcdHdk<<std::endl;
+    oss<<"bandgapadd:"<<bandgapadd<<std::endl;
+    // lattice informatin
+    oss<<"lat:"<<lat<<std::endl;
+    oss<<"R:"<<R<<std::endl;
+    oss<<"Rr:"<<Rr<<std::endl;
+    oss<<"wcent:"<<wcent<<std::endl;
+    oss<<"wtR:"<<wtR<<std::endl;
+    oss<<"nowk:"<<nowk<<std::endl;
+
+    return oss.str();
+}
 
 int Hamiltoniank::setup(){
     Hk.resize(wcentnum,wcentnum);
@@ -202,9 +225,16 @@ void Hamiltoniank::update_vnmrnm(){
 
 
 
-void Hamiltoniank::runonekpoints(Eigen::Vector3d kv){
-    updateH(kv);
-    solverH();
-    update_vnmrnm();
+void Hamiltoniank::runonekpoints(Eigen::Vector3d kv){ 
+    // std::cout<<"kv:"<<kv<<std::endl;
+    
+    //仅在k点不同时重新计算
+    if((kv-kvector_now).norm()>0.00000001){
+        // std::cout<<"kv:"<<kv<<std::endl;
+        kvector_now=kv;
+        updateH(kv);
+        solverH();
+        update_vnmrnm();
+    }
 
 }
