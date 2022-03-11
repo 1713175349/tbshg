@@ -44,3 +44,6 @@
 #build file
 build/*
 build_setup_py/*
+
+*.pkl
+*/.vscode/*
