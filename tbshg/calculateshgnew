@@ -1,0 +1,205 @@
+#!/bin/env python3
+# -*- coding: utf-8 -*-
+import sys
+import os
+from unittest import result
+
+from scipy.fftpack import shift
+# from tbshg import tbshg
+import tbshg
+import numpy as np
+import multiprocessing as mp
+import functools
+
+from mpi4py import MPI
+import pickle
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+numproc = comm.Get_size()
+
+test2 = tbshg
+# H1=test2.Hamiltoniank()
+
+#print(H1.nowk)
+
+# lattice=np.array([[],
+#                   [],
+#                   []])
+
+
+
+
+
+
+
+
+configfile="/mnt/d/tmp/wannier/run.conf"
+
+solver1 = optproperty.fromconfig(configfile)
+
+
+
+
+# print(solver.get_kmesh().get_kmesh())
+
+result0=(parallel_kmesh(solver1.get_kmesh(),solver1,solver1.get_hv(),solver1.get_directindices()))
+
+
+if comm.rank == 0:
+    print("done")
+    import matplotlib.pyplot as plt
+    for i in range(len(result0)):
+        plt.plot(solver1.get_hv(),np.abs(result0[i]))
+    plt.show()
+
+# confs = readconfig(configfile)
+
+# # solver=test2.solveshg()
+# H1=readwannier_H(confs)
+
+# H1.bandgapadd=float(confs["bandgapadd"])
+
+# # print(H1.info())
+
+# # 初始化求解器
+# optsolver = test2.solveopt(H1,float(confs["ksi"]))
+
+# optsolver = solver1.solver
+
+# thickness=float(confs["thickness"])
+
+
+# hv=np.linspace(*[int(i) for i in confs["hvrange"].split(",")])
+
+# directs=[[int(j) for j in i.split()] for i in confs["directs"].split(",")]
+# directs=np.array(directs,dtype=np.int32)
+
+# # 设置需要计算的k点
+# nkx,nky,nkz=[int(i) for i in confs["nkx,nky,nkz"].split(",")]
+# nkxs,nkys,nkzs=[float(i) for i in confs["nkxs,nkys,nkzs"].split(",")]
+# kx=np.linspace(-0.5,0.5,nkx+1)[:-1]+nkxs
+# ky=np.linspace(-0.5,0.5,nky+1)[:-1]+nkys
+# kz=np.linspace(-0.5,0.5,nkz+1)[:-1]+nkzs
+# Kx,Ky,Kz=np.meshgrid(kx,ky,kz)
+# kx=Kx.reshape(-1)
+# ky=Ky.reshape(-1)
+# kz=Kz.reshape(-1)
+# # kx=[0]
+# # ky=[0]
+# # kz=[0.5]
+# Rlat=np.zeros((3,3))
+# lattice=H1.lat
+# # lattice=np.zeros((3,3))
+# nkpts=len(kx)
+# kmesh=np.zeros((nkpts,3))
+# kweight=np.zeros(nkpts)
+# Rlat[0]=2*np.pi*np.cross(lattice[1],lattice[2])/np.linalg.det(lattice)
+# Rlat[1]=2*np.pi*np.cross(lattice[2],lattice[0])/np.linalg.det(lattice)
+# Rlat[2]=2*np.pi*np.cross(lattice[0],lattice[1])/np.linalg.det(lattice)
+# Vcell=np.linalg.det(lattice)
+# for i in range(nkpts):
+#     kmesh[i]=kx[i]*Rlat[0]+ky[i]*Rlat[1]+kz[i]*Rlat[2]
+#     kweight[i]=1
+
+# print(kmesh,solver1.get_kmesh().get_kmesh())
+# print(Rlat,solver1.H0.Rlattice)
+# iswriteperk = bool(int(confs["writeperk"]))
+
+
+
+# # # 随机k点
+# # kmesh=np.zeros((nkpts,3))
+# # for i in range(nkpts):
+# #     kmesh[i]=[(np.random.rand()-0.5)*10000,(np.random.rand()-0.5)*10000,0]
+
+
+# # kweight=kweight/nkpts
+
+# # if rank == 0:
+# #     with open("kmesh.pkl","wb") as fp:
+# #         pickle.dump(kmesh,fp)
+# #     with open("hv.pkl","wb") as fp:
+# #         pickle.dump(hv,fp)
+
+
+
+
+
+
+# # everyk=int(np.ceil(nkpts/numproc))
+
+# # everykslice=[]
+
+# # up=0
+# # for i in range(numproc):
+# #     if up+everyk <= nkpts:
+# #         everykslice.append(slice(up,up+everyk,1))
+# #         up+=everyk
+# #     else:
+# #         everykslice.append(slice(up,nkpts,1))
+
+# # if rank == 0:
+# #     print(numproc,nkpts)
+
+# # myslice=everykslice[rank]
+# # # print(directs)
+
+# # shg_i=0
+# # for i in range(myslice.start,myslice.stop,myslice.step):
+# #     print("proc:",rank,"kpoint index",i,"  processing:",(i-myslice.start)/everyk,flush=True)
+# #     # chi=optsolver.get_chi(kmesh[i],hv,directs)
+# #     shg_i+=optsolver.get_shg(kmesh[i],hv,directs)
+    
+
+
+# # # shg_k=solver.getshg(j)
+# # if rank!=0:
+# #     comm.send(shg_i,dest=0,tag=rank*100+10000)
+# #     #print("send success:",rank,"shg")
+# # else:
+# #     for i in range(1,numproc):
+# #         #print("recev:",i)
+# #         shg_i+=comm.recv(source=i,tag=i*100+10000)
+
+
+# # comm.Barrier()
+# # # shg_final=np.zeros(shg_k.shape[0],dtype=np.complex128)
+# # # for i in range(shg_k.shape[0]):
+# # #     shg_final[i]=np.dot(shg_k[i],kweight)/Vcell/epsilon0
+# # if rank==0:
+# #     shg_final=shg_i/Vcell/epsilon0
+# #     shg_final/=nkpts
+# #     shg_final = shg_final*lattice[2][2]/thickness
+
+# #     import matplotlib.pyplot as plt
+
+# #     for i in range(len(directs)):
+# #         plt.plot(hv,np.abs(shg_final[i])*1000)
+
+# #     plt.show()
+
+
+# # linechi=0
+# # linedirects=[[0,0],
+# #             [0,1],
+# #             [0,2],
+# #             [1,0],
+# #             [1,1],
+# #             [1,2],
+# #             [2,0],
+# #             [2,1],
+# #             [2,2]]
+# # hv=np.linspace(0,10,200)
+# # for i in range(nkpts):
+# #     linechi+=optsolver.get_linechi(kmesh[i],hv,linedirects)
+
+# # linechi=linechi/nkpts
+
+# # line_final=linechi/Vcell/epsilon0
+
+# # if rank==0:
+# #     import matplotlib.pyplot as plt
+# #     for i in range(len(linedirects)):
+# #         plt.plot(hv,np.abs(line_final[i]))
+
+# #     plt.show()
