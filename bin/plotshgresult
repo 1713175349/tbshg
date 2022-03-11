@@ -67,16 +67,6 @@ for i in range(len(directs)):
     # shg=np.sum(shg,axis=1)
     # plt.plot(hv,np.real(shg),label="real",marker="x")
     # plt.plot(hv,np.imag(shg),label="imag",marker="d")
-<<<<<<< HEAD
-    if confs.get("dimension") == None or int(confs["dimension"]) == 3:
-        plt.plot(hv,np.abs(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
-        plt.xlabel("Energy(eV)")
-        plt.ylabel("pm/V")
-    elif int(confs["dimension"]) == 2:
-        plt.plot(hv,np.abs(shg)*10**3*10**2*float(confs["thickness"]),label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
-        plt.xlabel("Energy(eV)")
-        plt.ylabel("pm^2/V")
-=======
     # if confs.get("dimension") == None or int(confs["dimension"]) == 3:
     plt.plot(hv,np.abs(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[i]]),marker=markers[i%len(markers)])
     plt.xlabel("Energy(eV)")
@@ -85,7 +75,6 @@ for i in range(len(directs)):
     #     plt.plot(hv,np.abs(shg)*10**3*10**2*float(confs["thickness"]),label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
     #     plt.xlabel("Energy(eV)")
     #     plt.ylabel("pm^2/V")
->>>>>>> 8746ba301b6413d33fc929be1dc75432a153cdda
     
     if isout:
         df["".join([["x","y","z"][i] for i in directs[i]])+"-abs"]=np.abs(shg)*10**3
