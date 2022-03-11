@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/home/zln/anaconda3/bin/python
 
 from os import confstr
 from gevent import config
@@ -6,6 +6,10 @@ from matplotlib import markers
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+from cycler import cycler
+import numpy as np
+
+plt.rc("axes",prop_cycle=(cycler('color', ["#0d49fb", "#e6091c", "#26eb47", "#8936df", "#fec32d", "#25d7fd"]) * cycler('ls', ['-','--'])))
 
 import pickle
 def readconfig(fn:str):
@@ -37,7 +41,8 @@ confs = readconfig(sys.argv[1])
 nkx,nky,nkz=[int(i) for i in confs["nkx,nky,nkz"].split(",")]
 nkxs,nkys,nkzs=[float(i) for i in confs["nkxs,nkys,nkzs"].split(",")]
 
-noccu = int(confs["nocc"])
+
+thickness = float(confs["thickness"])
 
 
 hv=np.linspace(*[int(i) for i in confs["hvrange"].split(",")])
@@ -50,6 +55,7 @@ if confs.get("iswritedata"):
     isout=(int(confs.get("iswritedata"))==1)
 if isout:
     df=pd.DataFrame(hv,columns=["hv"])
+markers=["x","s","^","v","8"]
 for i in range(len(directs)):
     if str([directs[i][0],directs[i][2],directs[i][1]]) in [str(j) for j in directs[:i]]:
         continue
@@ -57,9 +63,11 @@ for i in range(len(directs)):
     #     continue
     print(directs[i])
     shg=shgs[int(i)]
+    #shg=shg*thickness/6.155/2
     # shg=np.sum(shg,axis=1)
     # plt.plot(hv,np.real(shg),label="real",marker="x")
     # plt.plot(hv,np.imag(shg),label="imag",marker="d")
+<<<<<<< HEAD
     if confs.get("dimension") == None or int(confs["dimension"]) == 3:
         plt.plot(hv,np.abs(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
         plt.xlabel("Energy(eV)")
@@ -68,6 +76,16 @@ for i in range(len(directs)):
         plt.plot(hv,np.abs(shg)*10**3*10**2*float(confs["thickness"]),label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
         plt.xlabel("Energy(eV)")
         plt.ylabel("pm^2/V")
+=======
+    # if confs.get("dimension") == None or int(confs["dimension"]) == 3:
+    plt.plot(hv,np.abs(shg)*10**3,label="".join([["x","y","z"][i] for i in directs[i]]),marker=markers[i%len(markers)])
+    plt.xlabel("Energy(eV)")
+    plt.ylabel("pm/V")
+    # elif int(confs["dimension"]) == 2:
+    #     plt.plot(hv,np.abs(shg)*10**3*10**2*float(confs["thickness"]),label="".join([["x","y","z"][i] for i in directs[i]]),marker="d")
+    #     plt.xlabel("Energy(eV)")
+    #     plt.ylabel("pm^2/V")
+>>>>>>> 8746ba301b6413d33fc929be1dc75432a153cdda
     
     if isout:
         df["".join([["x","y","z"][i] for i in directs[i]])+"-abs"]=np.abs(shg)*10**3

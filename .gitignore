@@ -44,3 +44,10 @@
 #build file
 build/*
 build_setup_py/*
+
+*.pkl
+*/.vscode/*
+!*/.vscode/settings.json
+!*/.vscode/tasks.json
+!*/.vscode/launch.json
+!*/.vscode/extensions.json

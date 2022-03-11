@@ -14,15 +14,16 @@ numproc = MPI.COMM_WORLD.Get_size()
 comm = MPI.COMM_WORLD
 
 solver=optproperty.fromconfig(sys.argv[1])
-result=solver.solve_shg_from_config()
+result=solver.solve_linechi_from_config()
 
 
 if rank==0:
     if int(solver.config["dimension"])==2:
         result=result*solver.H0.lattice[2,2]/float(solver.config["thickness"])
-    with open("shg_directs.pkl","wb") as fp:
+
+    with open("linear_directs.pkl","wb") as fp:
         pickle.dump(result,fp)
     with open("hv.pkl","wb") as fp:
         pickle.dump(solver.get_hv(),fp)
-
+        
 

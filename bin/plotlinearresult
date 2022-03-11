@@ -1,0 +1,81 @@
+#!/home/zln/anaconda3/bin/python
+
+from os import confstr
+from gevent import config
+from matplotlib import markers
+import matplotlib.pyplot as plt
+import numpy as np
+import sys
+from cycler import cycler
+import numpy as np
+
+plt.rc("axes",prop_cycle=(cycler('color', ["#0d49fb", "#e6091c", "#26eb47", "#8936df", "#fec32d", "#25d7fd"]) * cycler('ls', ['-','--'])))
+
+import pickle
+def readconfig(fn:str):
+    with open(fn,"r") as fp:
+        buf=""
+        out={}
+        while 1:
+            line = fp.readline()
+            if line == "":
+                break
+            if line.strip() == "" or line.strip()[0]=="#":
+                continue
+            if "#" in line:
+                line=line[:line.index("#")]
+
+            buf += line.strip()
+            if line.strip()[-1]=="\\":
+                buf=buf[:-1]
+                continue
+            k,v=[j.strip() for j in buf.split(":")]
+            out[k]=v
+            buf=""
+    return out
+  
+fp=open("linear_directs.pkl","rb")
+confs = readconfig(sys.argv[1])
+
+
+nkx,nky,nkz=[int(i) for i in confs["nkx,nky,nkz"].split(",")]
+nkxs,nkys,nkzs=[float(i) for i in confs["nkxs,nkys,nkzs"].split(",")]
+
+
+thickness = float(confs["thickness"])
+
+
+hv=np.linspace(*[int(i) for i in confs["hvrange"].split(",")])
+
+directs=[[int(j) for j in i.split()] for i in confs["directslinear"].split(",")]
+
+linears=pickle.load(fp)
+import pandas as pd
+if confs.get("iswritedata"):
+    isout=(int(confs.get("iswritedata"))==1)
+if isout:
+    df=pd.DataFrame(hv,columns=["hv"])
+markers=["x","s","^","v","8"]
+for i in range(len(directs)):
+    # if str([directs[i][0],directs[i][2],directs[i][1]]) in [str(j) for j in directs[:i]]:
+    #     continue
+    # if 2 in directs[i]:
+    #     continue
+    print(directs[i])
+    linear=linears[int(i)]
+    #linear=linear*thickness/6.155/2
+    # linear=np.sum(linear,axis=1)
+    # plt.plot(hv,np.real(linear),label="real",marker="x")
+    # plt.plot(hv,np.imag(linear),label="imag",marker="d")
+    # if confs.get("dimension") == None:
+    plt.plot(hv,np.abs(linear),label="".join([["x","y","z"][i] for i in directs[i]]),marker=markers[i%len(markers)])
+    plt.xlabel("Energy(eV)")
+    if isout:
+        df["".join([["x","y","z"][i] for i in directs[i]])+"-abs"]=np.abs(linear)
+        df["".join([["x","y","z"][i] for i in directs[i]])+"-real"]=np.real(linear)
+        df["".join([["x","y","z"][i] for i in directs[i]])+"-image"]=np.imag(linear)
+    
+if isout:
+    df.to_csv("linear_directs.csv",index=False)
+plt.legend()
+plt.show()
