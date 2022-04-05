@@ -1,3 +1,4 @@
+from tokenize import Double
 from .utils.constant import epsilon0
 from .hamiltonian import tbHamiltonian,Hamiltonian
 from . import tbshg_core
@@ -37,9 +38,27 @@ class optproperty(object):
         out = cls(H,float(config["ksi"]))
         out.config=config
         out.solver.setup_mc() # 初始化蒙特卡洛方法
+        out.solver.max_occ=float(config.get("max_occ") if config.get("max_occ") else 2.0)
+        return out
+    
+    @classmethod
+    def fromconfig_mm(cls,fn:str):
+        config=readconfig(fn)
+        path0=config["datafilepath"]
+        dirn=os.path.split(path0)[0]
+        seedname=os.path.split(path0)[1]
+        exclude_bands=5
+        if config.get("exclude_bands"):
+            exclude_bands=int(config["exclude_bands"])
+        H=tbHamiltonian.from_mm_binary(dirn,exclude_bands=exclude_bands)
+        out = cls(H,float(config["ksi"]))
+        out.config=config
+        out.solver.setup_mc() # 初始化蒙特卡洛方法
+        out.solver.max_occ=float(config.get("max_occ") if config.get("max_occ") else 2.0)
         return out
     
     def get_kmesh(self):
+        # TODO: 计划构建一个新函数，将对称性引入，提高速度
         nkx,nky,nkz=[int(i) for i in self.config["nkx,nky,nkz"].split(",")]
         nkxs,nkys,nkzs=[float(i) for i in self.config["nkxs,nkys,nkzs"].split(",")]
         
@@ -66,7 +85,7 @@ class optproperty(object):
             if show_progress:
                 print("rank: ",comm.rank,", kpoint: ",i,"/",nkpts,"progress: ",i/nkpts,flush=True)
             self.H0.solve_one_kpoint(kmesh[i])
-            kshg = self.solver.get_shg(kmesh[i],hv,directindices)
+            kshg = self.solver.get_shg_f(kmesh[i],hv,directindices)
             shg_i+=kshg
             if savek:
                 shg_k[i]=kshg

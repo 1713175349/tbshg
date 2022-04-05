@@ -147,7 +147,7 @@ setup(
     #py_modules=[_this_package],
     python_requires=">=3.5",
     include_package_data=True,
-    scripts=["bin/calculateshg","bin/calculatelinear","bin/plotshgresult","bin/generatewcentxyz","bin/plotlinearresult"],
+    scripts=["bin/calculateshg","bin/calculateshgvasp","bin/calculatelinear","bin/plotshgresult","bin/generatewcentxyz","bin/plotlinearresult"],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',

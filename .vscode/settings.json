@@ -1,8 +1,16 @@
 {
     "C_Cpp.default.configurationProvider": "go2sh.cmake-integration",
     "files.associations": {
+        "*.tex": "latex",
         "functional": "cpp",
         "numeric": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "utility": "cpp",
+        "valarray": "cpp",
+        "complex": "cpp",
+        "random": "cpp"
     }
 }

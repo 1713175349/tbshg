@@ -17,6 +17,8 @@ class solveopt
 {
 private:
     double ksi=0.02;
+    double etolerance=1e-6;
+    double max_occ=2.0; //每条能带的最大占据数
     std::shared_ptr<Hamiltoniank> H1;//哈密顿矩阵
 public:
     // solveopt(/* args */);
@@ -50,6 +52,14 @@ public:
     std::shared_ptr<Hamiltoniank> get_H1(){
         return H1;
     }
+
+    double set_max_occ(double max_occ_){
+        max_occ=max_occ_;
+        return max_occ;
+    }
+    double get_max_occ(){
+        return max_occ;
+    }
     
     double set_ksi(double ksi_){
         ksi=ksi_;
@@ -64,6 +74,12 @@ public:
     Eigen::MatrixXcd get_ita(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
     Eigen::MatrixXcd get_sigma(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
 
+    Eigen::MatrixXcd get_shg_f(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
+    Eigen::MatrixXcd get_chi_f(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
+    Eigen::MatrixXcd get_ita_f(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
+    Eigen::MatrixXcd get_sigma_f(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
+
+
     std::unique_ptr<std::random_device> rd;
     std::unique_ptr<std::mt19937> gen;
     std::unique_ptr<std::uniform_int_distribution<>> dis;
@@ -75,6 +91,12 @@ public:
     Eigen::MatrixXcd get_shg_mc(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice,int times=10000); //monte carlo 方法计算shg
 
     Eigen::MatrixXcd get_linechi(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX2i directindice);
+
+    //采用无规相近似的求和，用以大大加快求和速度
+    Eigen::MatrixXcd get_inter(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
+    Eigen::MatrixXcd get_intra(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
+    Eigen::MatrixXcd get_modu(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
+    Eigen::MatrixXcd get_shg_rpa(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice);
 };
 
 Eigen::MatrixXcd solveopt::get_chi(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
@@ -152,7 +174,7 @@ Eigen::MatrixXcd solveopt::get_chi(Eigen::Vector3d kvector,Eigen::VectorXd hv,Ei
         
     }
     
-    return chi;
+    return max_occ*chi;
     
 }
 
@@ -283,7 +305,7 @@ Eigen::MatrixXcd solveopt::get_ita(Eigen::Vector3d kvector,Eigen::VectorXd hv,Ei
         }
         
     }
-    return ita;
+    return max_occ*ita;
 }
 
 Eigen::MatrixXcd solveopt::get_sigma(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
@@ -371,11 +393,15 @@ Eigen::MatrixXcd solveopt::get_sigma(Eigen::Vector3d kvector,Eigen::VectorXd hv,
         }
         
     }
-    return sigma;
+    return max_occ*sigma;
 }
 
 Eigen::MatrixXcd solveopt::get_shg(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
     return get_sigma(kvector,hv,directindice)+get_ita(kvector,hv,directindice) +get_chi(kvector,hv,directindice);
+}
+
+Eigen::MatrixXcd solveopt::get_shg_rpa(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
+    return get_inter(kvector,hv,directindice)+get_intra(kvector,hv,directindice) +get_modu(kvector,hv,directindice);
 }
 
 Eigen::MatrixXcd solveopt::get_linechi(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX2i directindice){
@@ -413,7 +439,7 @@ Eigen::MatrixXcd solveopt::get_linechi(Eigen::Vector3d kvector,Eigen::VectorXd h
 
         }
     }   
-    return chi1;
+    return max_occ*chi1;
 }
 
 void solveopt::setup_mc(){
@@ -504,7 +530,7 @@ Eigen::MatrixXcd solveopt::get_chi_mc(Eigen::Vector3d kvector,Eigen::VectorXd hv
         }
     }
     
-    return chi*bandnum*bandnum*bandnum/times;
+    return max_occ*chi*bandnum*bandnum*bandnum/times;
     
 }
 
@@ -600,7 +626,7 @@ Eigen::MatrixXcd solveopt::get_ita_mc(Eigen::Vector3d kvector,Eigen::VectorXd hv
             }
         }
     }
-    return ita*bandnum*bandnum*bandnum/times;
+    return max_occ*ita*bandnum*bandnum*bandnum/times;
 }
 
 
@@ -682,9 +708,475 @@ Eigen::MatrixXcd solveopt::get_sigma_mc(Eigen::Vector3d kvector,Eigen::VectorXd 
             }
         }
     }
-    return sigma*bandnum*bandnum*bandnum/times;
+    return max_occ*sigma*bandnum*bandnum*bandnum/times;
 }
 
 Eigen::MatrixXcd solveopt::get_shg_mc(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice,int times){
     return get_sigma_mc(kvector,hv,directindice,times)+get_ita_mc(kvector,hv,directindice,times) +get_chi_mc(kvector,hv,directindice,times);
+}
+
+
+Eigen::MatrixXcd solveopt::get_inter(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
+    H1->runonekpoints(kvector);
+
+    const auto & energyeigenval = H1->energy;
+    int bandnum=H1->wcentnum;
+    int ndirects=directindice.rows();
+    int nhv=hv.size();
+    const auto & rnm=H1->rnm;
+    const auto & vnm=H1->vnm;
+    const auto & energyweight=H1->energyweight;
+    //当前k点inter存储变量
+    Eigen::MatrixXcd inter(directindice.rows(),hv.size());
+    inter.setZero();
+    // std::cout<<chi.sum()<<std::endl;
+    complex<double> fac1,fac2;
+    for (int idirect = 0; idirect < ndirects; idirect++)
+    {
+        
+        int a=directindice(idirect,0);
+        int b=directindice(idirect,1);
+        int c=directindice(idirect,2);
+        for (int n=0; n < bandnum; n++)
+        {
+            if (energyweight(n)<0.5){
+                continue;
+            }
+            for (int m=0; m < bandnum; m++)
+            {
+                if (energyweight(m)>0.5){
+                    continue;
+                }
+                double && emn=energyeigenval(m)-energyeigenval(n);
+                for (int l=0;l<bandnum;l++){
+                    if (l==n || l==m){
+                        continue;
+                    }
+
+                    
+                   
+
+                    double && eln=energyeigenval(l)-energyeigenval(n);
+                    double && eml=energyeigenval(m)-energyeigenval(l);
+                    //去掉共振峰
+                    if (abs(eln-eml)<etolerance || abs(emn+eln)<etolerance || abs(emn+eml)<etolerance || abs(eln)<etolerance || abs(emn)<etolerance || abs(eml)<etolerance){
+                        continue;
+                    }
+                    complex<double> && rbc=rnm(c)(m,l)*rnm(b)(l,n)+rnm(b)(m,l)*rnm(c)(l,n);
+                    complex<double> && rab=rnm(a)(m,n)*rnm(b)(n,l)+rnm(b)(m,n)*rnm(a)(n,l);
+                    complex<double> && rca=rnm(c)(l,m)*rnm(a)(m,n)+rnm(a)(l,m)*rnm(c)(m,n);
+                    fac1=2.0*rnm(a)(n,m)*rbc/(eln-eml);
+                    fac2=-(rnm(c)(l,m)*rab/(-eln-emn)-rnm(b)(n,l)*rca/(-eml-emn));
+                    for (int ihv=0;ihv<nhv;ihv++){
+                        complex<double> && hv0=hv(ihv)+complex<double>(0,1)*ksi;
+                        inter(idirect,ihv)+=fac1/(emn-2.0*hv0)+fac2/(emn-hv0);
+                    }
+                }
+            }
+        }
+    }
+    return max_occ*inter;
+
+}
+
+
+Eigen::MatrixXcd solveopt::get_intra(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
+    H1->runonekpoints(kvector);
+
+    const auto & energyeigenval = H1->energy;
+    int bandnum=H1->wcentnum;
+    int ndirects=directindice.rows();
+    int nhv=hv.size();
+    const auto & rnm=H1->rnm;
+    const auto & vnm=H1->vnm;
+    const auto & energyweight=H1->energyweight;
+    //当前k点intra存储变量
+    Eigen::MatrixXcd intra(directindice.rows(),hv.size());
+    intra.setZero();
+    // std::cout<<chi.sum()<<std::endl;
+    complex<double> fac1,fac2;
+    for (int idirect = 0; idirect < ndirects; idirect++)
+    {
+        
+        int a=directindice(idirect,0);
+        int b=directindice(idirect,1);
+        int c=directindice(idirect,2);
+        for (int n=0; n < bandnum; n++)
+        {
+            if (energyweight(n)<0.5){
+                continue;
+            }
+            for (int m=0; m < bandnum; m++)
+            {
+                if (energyweight(m)>0.5){
+                    continue;
+                }
+                double && emn=energyeigenval(m)-energyeigenval(n);
+                for (int l=0;l<bandnum;l++){
+                    if (l==n || l==m){
+                        continue;
+                    }
+
+                    
+                   
+
+                    double && eln=energyeigenval(l)-energyeigenval(n);
+                    double && eml=energyeigenval(m)-energyeigenval(l);
+                    //去掉共振峰
+                    if (abs(eln-eml)<etolerance || abs(emn+eln)<etolerance || abs(emn+eml)<etolerance || abs(eln)<etolerance || abs(emn)<etolerance || abs(eml)<etolerance){
+                        continue;
+                    }
+                    complex<double> && rbc=rnm(c)(m,l)*rnm(b)(l,n)+rnm(b)(m,l)*rnm(c)(l,n);
+                    complex<double> && rab=rnm(a)(m,n)*rnm(b)(n,l)+rnm(b)(m,n)*rnm(a)(n,l);
+                    complex<double> && rca=rnm(c)(l,m)*rnm(a)(m,n)+rnm(a)(l,m)*rnm(c)(m,n);
+                    complex<double> && rdbc=(vnm(b)(m,m)-vnm(b)(n,n))*rnm(c)(l,n)+(vnm(c)(m,m)-vnm(c)(n,n))*rnm(b)(l,n);
+                    fac1=-complex<double>(0,8.0)*(rnm(a)(n,m)*rdbc)/emn/emn+2.0*rnm(a)(n,m)*rbc*(eml-eln)/emn/emn;
+                    fac2=(eln*rnm(b)(n,l)*rca-eml*rnm(c)(l,m)*rab)/emn/emn;
+                    for (int ihv=0;ihv<nhv;ihv++){
+                        complex<double> && hv0=hv(ihv)+complex<double>(0,1)*ksi;
+                        intra(idirect,ihv)+=fac1/(emn-2.0*hv0)+fac2/(emn-hv0);
+                    }
+                }
+            }
+        }
+    }
+    return max_occ*intra;
+
+}
+
+
+Eigen::MatrixXcd solveopt::get_modu(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
+    H1->runonekpoints(kvector);
+
+    const auto & energyeigenval = H1->energy;
+    int bandnum=H1->wcentnum;
+    int ndirects=directindice.rows();
+    int nhv=hv.size();
+    const auto & rnm=H1->rnm;
+    const auto & vnm=H1->vnm;
+    const auto & energyweight=H1->energyweight;
+    //当前k点modu存储变量
+    Eigen::MatrixXcd modu(directindice.rows(),hv.size());
+    modu.setZero();
+    // std::cout<<chi.sum()<<std::endl;
+    complex<double> fac1,fac2;
+    for (int idirect = 0; idirect < ndirects; idirect++)
+    {
+        
+        int a=directindice(idirect,0);
+        int b=directindice(idirect,1);
+        int c=directindice(idirect,2);
+        for (int n=0; n < bandnum; n++)
+        {
+            if (energyweight(n)<0.5){
+                continue;
+            }
+            for (int m=0; m < bandnum; m++)
+            {
+                if (energyweight(m)>0.5){
+                    continue;
+                }
+                double && emn=energyeigenval(m)-energyeigenval(n);
+                for (int l=0;l<bandnum;l++){
+                    if (l==n || l==m){
+                        continue;
+                    }
+
+                    
+                   
+
+                    double && eln=energyeigenval(l)-energyeigenval(n);
+                    double && eml=energyeigenval(m)-energyeigenval(l);
+                    //去掉共振峰
+                    if (abs(eln-eml)<etolerance || abs(emn+eln)<etolerance || abs(emn+eml)<etolerance || abs(eln)<etolerance || abs(emn)<etolerance || abs(eml)<etolerance){
+                        continue;
+                    }
+                    complex<double> && rbc0=rnm(c)(m,n)*rnm(b)(n,l)+rnm(b)(m,n)*rnm(c)(n,l);
+                    complex<double> && rbc1=rnm(c)(l,m)*rnm(b)(m,n)+rnm(b)(l,m)*rnm(c)(m,n);
+                    // complex<double> && rab=rnm(a)(m,n)*rnm(b)(n,l)+rnm(b)(m,n)*rnm(a)(n,l);
+                    // complex<double> && rca=rnm(c)(l,m)*rnm(a)(m,n)+rnm(a)(l,m)*rnm(c)(m,n);
+                    // complex<double> && rdbc=(vnm(b)(m,m)-vnm(b)(n,n))*rnm(c)(l,n)+(vnm(c)(m,m)-vnm(c)(n,n))*rnm(b)(l,n);
+                    complex<double> && rdbc0=(vnm(c)(m,m)-vnm(c)(n,n))*rnm(b)(m,n)+(vnm(b)(m,m)-vnm(b)(n,n))*rnm(c)(m,n);
+                    fac1=0;
+                    fac2=((-eln)*rnm(a)(l,m)*rbc0-(-eml)*rnm(a)(n,l)*rbc1)/emn/emn-complex<double>(0,1)*(rnm(a)(n,m)*rdbc0)/emn/emn;
+                    for (int ihv=0;ihv<nhv;ihv++){
+                        complex<double> && hv0=hv(ihv)+complex<double>(0,1)*ksi;
+                        modu(idirect,ihv)+=fac1/(emn-2.0*hv0)-fac2/(emn-hv0);
+                    }
+                }
+            }
+        }
+    }
+    return max_occ*modu;
+
+}
+
+
+
+Eigen::MatrixXcd solveopt::get_chi_f(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
+
+    H1->runonekpoints(kvector);
+
+    const auto & energyeigenval = H1->energy;
+    int bandnum=H1->wcentnum;
+    int ndirects=directindice.rows();
+    int nhv=hv.size();
+    const auto & rnm=H1->rnm;
+    const auto & vnm=H1->vnm;
+    const auto & energyweight=H1->energyweight;
+
+    //当前k点chi存储变量
+    Eigen::MatrixXcd chi(directindice.rows(),hv.size());
+    chi.setZero();
+    // std::cout<<chi.sum()<<std::endl;
+    complex<double> fac11,fac12=0,fac2=0;
+    for (int idirect = 0; idirect < ndirects; idirect++)
+    {
+        
+        int a=directindice(idirect,0);
+        int b=directindice(idirect,1);
+        int c=directindice(idirect,2);
+
+//可能有问题
+        for (int m = 0; m < bandnum; m++)
+        {
+            for (int l = 0; l < bandnum; l++)
+            {
+                for (int n = 0; n < bandnum; n++)
+                {
+                    double &&Eln=energyeigenval(l)-energyeigenval(n);
+                    double &&Eml=energyeigenval(m)-energyeigenval(l);
+                    double &&Emn=energyeigenval(m)-energyeigenval(n);
+                    // 消除发散项
+                    if (abs(Eln-Eml) < etolerance){
+                        continue;
+                        
+                    }
+                    complex<double> && fac0=rnm(a)(n,m)*(rnm(b)(m,l)*rnm(c)(l,n)+rnm(c)(m,l)*rnm(b)(l,n))/(Eln-Eml)/2.0;
+                    fac11 = fac0*((energyweight(m)-energyweight(l)));
+                    fac12 = fac0*(energyweight(l)-energyweight(n));
+                    fac2 = 2*(energyweight(n)-energyweight(m))*fac0;
+                    // std::cout<<fac1<<std::endl;
+                    for (int ihv = 0; ihv < nhv; ihv++)
+                    {
+                        complex<double> &&omega=hv(ihv)+complex<double>(0,1)*ksi;
+                        // complex<double> &&fac2=(energyweight(m)-energyweight(l))/(Eml-omega)
+                        //                 +(energyweight(l)-energyweight(n))/(Eln-omega)
+                        //                 +2*(energyweight(n)-energyweight(m))/(Emn-2.0*omega);
+                        
+                        chi(idirect,ihv)+=(fac11/(Eml-omega)+fac12/(Eln-omega)+fac2/(Emn-2.0*omega));
+                    }
+                    
+                }
+                
+            }
+            
+        }
+        
+    }
+    
+    return max_occ*chi;
+    
+}
+
+Eigen::MatrixXcd solveopt::get_ita_f(Eigen::Vector3d kvector, Eigen::VectorXd hv, Eigen::MatrixX3i directindice)
+{
+    H1->runonekpoints(kvector);
+    const auto &energyeigenval = H1->energy;
+    int bandnum = H1->wcentnum;
+    int ndirects = directindice.rows();
+    int nhv = hv.size();
+    const auto &rnm = H1->rnm;
+    const auto &vnm = H1->vnm;
+    const auto &energyweight = H1->energyweight;
+
+    //当前k点ita存储变量
+    Eigen::MatrixXcd ita(directindice.rows(), hv.size());
+    ita.setZero();
+
+    complex<double> fac1, fac2, fac3, fac12;
+    for (int idirect = 0; idirect < ndirects; idirect++)
+    {
+        int a = directindice(idirect, 0);
+        int b = directindice(idirect, 1);
+        int c = directindice(idirect, 2);
+
+        //可能有问题
+
+        for (int n = 0; n < bandnum; n++)
+        {
+            for (int m = 0; m < bandnum; m++)
+            {
+                double &&Emn = energyeigenval(m) - energyeigenval(n);
+                // 消除发散项
+                    // if ( abs(Emn) < etolerance ){
+                    //     continue;
+                        
+                    // }
+                if (abs(energyweight(n) - energyweight(m)) > 0.0001)
+                {
+                    //fac12 = -8.0 * complex<double>(0, 1) * (energyweight(n) - energyweight(m)) * rnm(a)(n, m) * ((vnm(b)(m, m) - vnm(b)(n, n)) * rnm(c)(m, n) + (vnm(c)(m, m) - vnm(c)(n, n)) * rnm(b)(m, n)) / 2.0 / (Emn * Emn * (Emn - 2.0 * omega));
+                    fac2 = -8.0 * complex<double>(0, 1) * (energyweight(n) - energyweight(m)) * rnm(a)(n, m) * ((vnm(b)(m, m) - vnm(b)(n, n)) * rnm(c)(m, n) + (vnm(c)(m, m) - vnm(c)(n, n)) * rnm(b)(m, n)) / 2.0 / (Emn * Emn );
+                    for (int ihv;ihv<nhv;ihv++){
+                        complex<double> &&omega=hv(ihv)+complex<double>(0,1)*ksi;
+                        ita(idirect, ihv) += fac2/(Emn - 2.0 * omega);
+                    }
+                    
+                }
+
+                for (int l = 0; l < bandnum; l++)
+                {
+                    // if ((energyweight(l) == energyweight(n)) and (energyweight(l) == energyweight(m)))
+                    // {
+                    //     continue;
+                    // }
+                    
+                    double &&Eln = energyeigenval(l) - energyeigenval(n);
+                    double &&Eml = energyeigenval(m) - energyeigenval(l);
+                    // // 消除发散项
+                    // if (abs(Eln-Eml) < etolerance ){
+                    //     continue;
+                        
+                    // }
+                    fac1 = 0;
+                    fac2 = 0;
+                    fac3 = 0;
+                    
+                        if (abs(energyweight(n) - energyweight(l)) > 0.0001)
+                        {
+                            // fac1 = Emn * (energyweight(n) - energyweight(l)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Eln * Eln * (Eln - omega));
+                            fac1 = Emn * (energyweight(n) - energyweight(l)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Eln * Eln );
+                        }
+#ifndef newversion
+                        if (abs(energyweight(l) - energyweight(m)) > 0.0001)
+                        {
+                            // fac2 = Emn * (energyweight(l) - energyweight(m)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Eml * Eml * (Eml - omega));
+                            fac2 = Emn * (energyweight(l) - energyweight(m)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Eml * Eml );
+                        }
+#else
+                        if (abs(energyweight(l) - energyweight(m)) > 0.0001)
+                        {
+                            // fac2 = -Emn * (energyweight(l) - energyweight(m)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Eml * Eml * (Eml - omega));
+                            fac2 = -Emn * (energyweight(l) - energyweight(m)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Eml * Eml );
+                        }
+#endif
+
+#ifndef newversion
+                        if (abs(energyweight(n) - energyweight(m)) > 0.0001)
+                        {
+                            // fac3 = -2 * (energyweight(n) - energyweight(m)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Emn * Emn * (Emn - 2.0 * omega)) * (Eln - Eml);
+                            fac3 = -2 * (energyweight(n) - energyweight(m)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Emn * Emn ) * (Eln - Eml);
+                        }
+#else
+
+                        if (abs(energyweight(n) - energyweight(m)) > 0.0001)
+                        {
+                            // fac3 = 2 * (energyweight(n) - energyweight(m)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Emn * Emn * (Emn - 2.0 * omega)) * (-(Eln - Eml));
+                            fac3 = 2 * (energyweight(n) - energyweight(m)) * rnm(a)(n, m) * (rnm(b)(m, l) * rnm(c)(l, n) + rnm(c)(m, l) * rnm(b)(l, n)) / 2.0 / (Emn * Emn ) * (-(Eln - Eml));
+                        }
+#endif
+for (int ihv = 0; ihv < nhv; ihv++)
+                    {
+                        complex<double> &&omega = hv(ihv) + complex<double>(0, 1) * ksi;
+                        ita(idirect, ihv) += (fac1/((Eln - omega)) + fac2/(Eml - omega) + fac3/(Emn - 2.0 * omega));
+                    }
+                }
+            }
+        }
+    }
+    return max_occ*ita;
+}
+
+Eigen::MatrixXcd solveopt::get_sigma_f(Eigen::Vector3d kvector, Eigen::VectorXd hv, Eigen::MatrixX3i directindice)
+{
+    H1->runonekpoints(kvector);
+    const auto &energyeigenval = H1->energy;
+    int bandnum = H1->wcentnum;
+    int ndirects = directindice.rows();
+    int nhv = hv.size();
+    const auto &rnm = H1->rnm;
+    const auto &vnm = H1->vnm;
+    const auto &energyweight = H1->energyweight;
+
+    //当前k点sigma存储变量
+    Eigen::MatrixXcd sigma(directindice.rows(), hv.size());
+    sigma.setZero();
+
+    complex<double> fac1, fac2, fac3, fac12;
+    for (int idirect = 0; idirect < ndirects; idirect++)
+    {
+        int a = directindice(idirect, 0);
+        int b = directindice(idirect, 1);
+        int c = directindice(idirect, 2);
+
+        //可能有问题
+
+        for (int n = 0; n < bandnum; n++)
+        {
+            for (int m = 0; m < bandnum; m++)
+            {
+                double &&Emn = energyeigenval(m) - energyeigenval(n);
+                // 消除发散项
+                    if ( abs(Emn) < etolerance ){
+                        continue;
+                        
+                    }
+                if (abs(energyweight(n) - energyweight(m)) > 0.0001)
+                {
+#ifndef newversion
+                    // fac12 = complex<double>(0, 1) * (energyweight(n) - energyweight(m)) * rnm(a)(n, m) * ((vnm(b)(m, m) - vnm(b)(n, n)) * rnm(c)(m, n) + (vnm(c)(m, m) - vnm(c)(n, n)) * rnm(b)(m, n)) / 2.0 / (Emn * Emn * (Emn - 1.0 * omega)); //这里似乎应该是Emn-2*omega ，本来为Emn-omega //修改
+                    fac12 = complex<double>(0, 1) * (energyweight(n) - energyweight(m)) * rnm(a)(n, m) * ((vnm(b)(m, m) - vnm(b)(n, n)) * rnm(c)(m, n) + (vnm(c)(m, m) - vnm(c)(n, n)) * rnm(b)(m, n)) / 2.0 / (Emn * Emn );
+#else
+                    //fac12 = complex<double>(0, 1) * (energyweight(n) - energyweight(m)) * (vnm(a)(n, n) - vnm(a)(m, m)) * (rnm(b)(m, n) * rnm(c)(n, m) + rnm(c)(m, n) * rnm(b)(n, m)) / 2.0 / (Emn * Emn * (Emn - 1.0 * omega)); //这里似乎应该是Emn-2*omega ，本来为Emn-omega //修改
+                    fac12 = complex<double>(0, 1) * (energyweight(n) - energyweight(m)) * (vnm(a)(n, n) - vnm(a)(m, m)) * (rnm(b)(m, n) * rnm(c)(n, m) + rnm(c)(m, n) * rnm(b)(n, m)) / 2.0 / (Emn * Emn );
+#endif
+                    for (int ihv = 0; ihv < nhv; ihv++)
+                    {
+                        complex<double> &&omega = hv(ihv) + complex<double>(0, 1) * ksi;
+                        sigma(idirect, ihv) += fac12 / 2.0/(Emn - 1.0 * omega);
+                    }
+                }
+
+                for (int l = 0; l < bandnum; l++)
+                {
+
+                    if ((energyweight(l) == energyweight(n)) and (energyweight(l) == energyweight(m)))
+                    {
+                        continue;
+                    }
+                    double &&Enl = energyeigenval(n) - energyeigenval(l);
+                    double &&Elm = energyeigenval(l) - energyeigenval(m);
+                    
+                    fac1 = 0;
+                    fac2 = 0;
+                    fac3 = 0;
+#ifndef newversion
+
+                    if (abs(energyweight(n) - energyweight(m)) > 0.0001)
+                    {
+                        //fac3 = (energyweight(n) - energyweight(m)) * (Enl * rnm(a)(l, m) * (rnm(b)(m, n) * rnm(c)(n, l) + rnm(c)(m, n) * rnm(b)(n, l)) / 2.0 - Elm * rnm(a)(n, l) * (rnm(b)(l, m) * rnm(c)(m, n) + rnm(c)(l, m) * rnm(b)(m, n)) / 2.0) / (Emn * Emn * (Emn - omega));
+                        fac3 = (energyweight(n) - energyweight(m)) * (Enl * rnm(a)(l, m) * (rnm(b)(m, n) * rnm(c)(n, l) + rnm(c)(m, n) * rnm(b)(n, l)) / 2.0 - Elm * rnm(a)(n, l) * (rnm(b)(l, m) * rnm(c)(m, n) + rnm(c)(l, m) * rnm(b)(m, n)) / 2.0) / (Emn * Emn );
+                    }
+#else
+                    if (abs(energyweight(n) - energyweight(m)) > 0.0001)
+                    {
+                        //fac3 = complex<double>(0, 1) * (energyweight(n) - energyweight(m)) * (Enl * rnm(a)(l, m) * (rnm(b)(m, n) * rnm(c)(n, l) + rnm(c)(m, n) * rnm(b)(n, l)) / 2.0 - Elm * rnm(a)(n, l) * (rnm(b)(l, m) * rnm(c)(m, n) + rnm(c)(l, m) * rnm(b)(m, n)) / 2.0) / (Emn * Emn * (Emn - omega));
+                        fac3 = complex<double>(0, 1) * (energyweight(n) - energyweight(m)) * (Enl * rnm(a)(l, m) * (rnm(b)(m, n) * rnm(c)(n, l) + rnm(c)(m, n) * rnm(b)(n, l)) / 2.0 - Elm * rnm(a)(n, l) * (rnm(b)(l, m) * rnm(c)(m, n) + rnm(c)(l, m) * rnm(b)(m, n)) / 2.0) / (Emn * Emn );
+                    }
+#endif
+                    for (int ihv = 0; ihv < nhv; ihv++)
+                    {
+                        complex<double> &&omega = hv(ihv) + complex<double>(0, 1) * ksi;
+                        sigma(idirect, ihv) += (fac3 / 2.0/(Emn - 1.0 * omega));
+                    }
+                }
+            }
+        }
+    }
+    return max_occ*sigma;
+}
+
+
+Eigen::MatrixXcd solveopt::get_shg_f(Eigen::Vector3d kvector,Eigen::VectorXd hv,Eigen::MatrixX3i directindice){
+    return get_sigma_f(kvector,hv,directindice)+get_ita_f(kvector,hv,directindice) +get_chi_f(kvector,hv,directindice);
 }

@@ -118,17 +118,24 @@ int Hamiltoniank::updateH(Eigen::Vector3d kv){
             for (int k = 0; k < overlapnum; k++)
             {
                 
+                // complex<double> &&refHijk=r(k,i,j) * std::exp<double>( complex<double>(0,1) * (
+                //     kv(0)*(Rr(k,0))
+                //     +kv(1)*(Rr(k,1))
+                //     +kv(2)*(Rr(k,2))
+                //     ) ) / wtR(k);
                 complex<double> &&refHijk=r(k,i,j) * std::exp<double>( complex<double>(0,1) * (
-                    kv(0)*(Rr(k,0))
-                    +kv(1)*(Rr(k,1))
-                    +kv(2)*(Rr(k,2))
+                    kv(0)*(Rr(k,0)+wcent(j,0)-wcent(i,0))
+                    +kv(1)*(Rr(k,1)+wcent(j,1)-wcent(i,1))
+                    +kv(2)*(Rr(k,2)+wcent(j,2)-wcent(i,2))
                     ) ) / wtR(k);
-                    
                 Hk(i,j)+=refHijk;
                 if (clcdHdk == 1){
                     dHkdkx(i,j)+= complex<double>(0,1) * refHijk * (Rr(k,0)+wcent(j,0)-wcent(i,0));
                     dHkdky(i,j)+= complex<double>(0,1) * refHijk * (Rr(k,1)+wcent(j,1)-wcent(i,1));
                     dHkdkz(i,j)+= complex<double>(0,1) * refHijk * (Rr(k,2)+wcent(j,2)-wcent(i,2));
+                    // dHkdkx(i,j)+= complex<double>(0,1) * refHijk * (Rr(k,0));
+                    // dHkdky(i,j)+= complex<double>(0,1) * refHijk * (Rr(k,1));
+                    // dHkdkz(i,j)+= complex<double>(0,1) * refHijk * (Rr(k,2));
                     // dHkdkx(i,j)+= -complex<double>(0,1) * refHijk * (Rr(k,0)+wcent(j,0)-wcent(i,0));
                     // dHkdky(i,j)+= -complex<double>(0,1) * refHijk * (Rr(k,1)+wcent(j,1)-wcent(i,1));
                     // dHkdkz(i,j)+= -complex<double>(0,1) * refHijk * (Rr(k,2)+wcent(j,2)-wcent(i,2));
@@ -229,7 +236,7 @@ void Hamiltoniank::runonekpoints(Eigen::Vector3d kv){
     // std::cout<<"kv:"<<kv<<std::endl;
     
     //仅在k点不同时重新计算
-    if((kv-kvector_now).norm()>0.00000001){
+    if((kv-kvector_now).norm()>0.0001){
         // std::cout<<"kv:"<<kv<<std::endl;
         kvector_now=kv;
         updateH(kv);

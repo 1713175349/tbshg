@@ -61,6 +61,7 @@ PYBIND11_MODULE(tbshg_core,m){
         .def_readwrite("dHkdky",&Hamiltoniank::dHkdky)
         .def_readwrite("dHkdkz",&Hamiltoniank::dHkdkz)
         .def_readwrite("bandgapadd",&Hamiltoniank::bandgapadd)
+        .def_readwrite("kvector_now",&Hamiltoniank::kvector_now)
         .def("runonekpoint",&Hamiltoniank::runonekpoints);
     
     
@@ -94,12 +95,21 @@ PYBIND11_MODULE(tbshg_core,m){
         .def("get_chi",&solveopt::get_chi)
         .def("get_ita",&solveopt::get_ita)
         .def("get_sigma",&solveopt::get_sigma)
+        .def("get_shg_f",&solveopt::get_shg_f)
+        .def("get_chi_f",&solveopt::get_chi_f)
+        .def("get_ita_f",&solveopt::get_ita_f)
+        .def("get_sigma_f",&solveopt::get_sigma_f)
         .def("get_linechi",&solveopt::get_linechi)
         .def_property("ksi",&solveopt::get_ksi,&solveopt::set_ksi)
         .def_property("H1",&solveopt::get_H1,&solveopt::set_H1)
+        .def_property("max_occ",&solveopt::get_max_occ,&solveopt::set_max_occ)
         .def("setup_mc",&solveopt::setup_mc)
         .def("get_shg_mc",&solveopt::get_shg_mc)
         .def("get_chi_mc",&solveopt::get_chi_mc)
         .def("get_ita_mc",&solveopt::get_ita_mc)
-        .def("get_sigma_mc",&solveopt::get_sigma_mc);
+        .def("get_sigma_mc",&solveopt::get_sigma_mc)
+        .def("get_inter",&solveopt::get_inter)
+        .def ("get_intra",&solveopt::get_intra)
+        .def("get_modu",&solveopt::get_modu)
+        .def("get_shg_rpa",&solveopt::get_shg_rpa);
 }
